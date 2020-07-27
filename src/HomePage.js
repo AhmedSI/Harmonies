@@ -13,6 +13,10 @@ const iconc = require("tui-image-editor/dist/svg/icon-c.svg");
 const icond = require("tui-image-editor/dist/svg/icon-d.svg");
 const download = require("downloadjs");
 const myTheme = {
+  'common.bi.image': '',
+  'common.border': '0px',
+  'common.backgroundColor': '#1e1e1e',
+  'common.bisize.height': '30px',
   "menu.backgroundColor": "white",
   "common.backgroundColor": "#151515",
   "downloadButton.backgroundColor": "white",
@@ -52,15 +56,30 @@ class HomePage extends Component {
     const data = imageEditorInst.toDataURL();
     this.props.updateImage(data);
     this.props.history.push('magic');
+   }
+
+   dataURLtoFile = (dataurl, filename) => {
+ 
+    var arr = dataurl.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), 
+        n = bstr.length, 
+        u8arr = new Uint8Array(n);
+        
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    
+    return new File([u8arr], filename, {type:mime});
   }
 
   segmentPost= ()=>{
     const imageEditorInst = this.imageEditor.current.imageEditorInst;
     const data = imageEditorInst.toDataURL();
-    Axios.post('https://segmentor.azurewebsites.net', {img:data}).then(response=>{ 
-      this.imageEditor.current.addImageObject(response).then(objectProps => {
-        console.log(objectProps.id);
-      });
+    document.getElementsByClassName("tui-image-editor-load-btn")[1].value = '';
+    Axios.post('https://segmentor.azurewebsites.net', {img:data}).then(response=>{
+
+      imageEditorInst.loadImageFromFile(this.dataURLtoFile(response.data.res, 'lena'));
     });
   }
 
